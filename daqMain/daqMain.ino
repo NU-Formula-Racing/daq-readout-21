@@ -119,7 +119,7 @@ unsigned long currentTime;
 unsigned long FL_VSS_LastRead,FR_VSS_LastRead, BL_VSS_LastRead, BR_VSS_LastRead, diff = millis();
 
 // SENSOR ARRAYS
-float allSensors[50];
+float allSensors[54];
 
 /*// SENSOR GLOBALS
 int sensorVoltage = 0;
@@ -192,10 +192,12 @@ float dimensionalizeAdsADC(float raw, float offset = 0);
 float dimensionalizeMegaADC(float raw, float offset = 0);
 float dimensionalizeBrakeTemp(float raw, float offset = 0);
 float dimensionalizeSteeringAngle(float raw, float offset = 0);
+float dimensionalizeBrakePress(float raw, float offset = 0);
 
 
 void setup() {
   // Open serial communications
+  
   if(enableSerialMessages){
   Serial.begin(9600);
   Serial.print("Initializing SD card...");
@@ -319,6 +321,11 @@ void setup() {
   digitalWrite(spare1_r, HIGH);
 
   if(enableSerialMessages){Serial.print("Setup complete");}
+  //weird bad hacky interrupt fix
+  pinMode(2, OUTPUT);
+  digitalWrite(2, HIGH);
+  pinMode(2, INPUT);
+  pinMode(2, INPUT_PULLUP);
 }
 
 void loop() {
@@ -330,9 +337,6 @@ void loop() {
   if (can_ready()) {
     can_getvalue();
   }
- /*if (can_ready()) {
-  can_getvalue();
- }*/
   
 //  check for analog reading every second
 //  frequency of change of data
@@ -348,7 +352,7 @@ void loop() {
     digitalWrite(braketemp_g, HIGH);
     digitalWrite(braketemp_r, HIGH);
 
-    // for now write to xbee every second, may shorten interval
+    // for now write to xbee every tenth of a second
     writeXbee();
     digitalWrite(braketemp_g, LOW); //y on
     digitalWrite(braketemp_y, HIGH);
