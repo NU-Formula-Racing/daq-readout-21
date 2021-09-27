@@ -3,17 +3,17 @@ void analogSensors(){
   digitalWrite(27, LOW); // y on
   digitalWrite(28, HIGH); //g off
   
-  allSensors[4] = (dimensionalizeMegaADC(analogRead(FL_BRK_TMP_PIN)) - 0.50)/0.005;
-  allSensors[5] = (dimensionalizeMegaADC(analogRead(FR_BRK_TMP_PIN)) - 0.50)/0.005;
+  allSensors[4] = dimensionalizeBrakeTemp(analogRead(FL_BRK_TMP_PIN));
+  allSensors[5] = dimensionalizeBrakeTemp(analogRead(FR_BRK_TMP_PIN));
   allSensors[6] = can_read(4); // back l brake temp
   allSensors[7] = can_read(5); // back r brake temp
   allSensors[8] = dimensionalizeMegaADC(analogRead(FL_SUS_POT_PIN), FL_SUS_POT_CLB);
   allSensors[9] = dimensionalizeMegaADC(analogRead(FR_SUS_POT_PIN), FR_SUS_POT_CLB);
   //  allSensors[10] = back l suspot
   //  allSensors[11] = back r suspot
-  allSensors[12] = (dimensionalizeMegaADC(analogRead(F_BRK_PRES_PIN), F_BRK_PRES_CLB) - 0.50)/ (4/7500);
+  allSensors[12] = dimensionalizeMegaADC(analogRead(F_BRK_PRES_PIN), F_BRK_PRES_CLB);
   allSensors[13] = can_read(1); // back brk pres
-  allSensors[14] = dimensionalizeMegaADC(analogRead(STEER_ANG_PIN), STEER_ANG_CLB);
+  allSensors[14] = dimensionalizeSteeringAngle(analogRead(STEER_ANG_PIN), STEER_ANG_CLB);
   // motec
   allSensors[15] = can_read(31); // TPS
   allSensors[16] = can_read(20); // OIL_PRES
@@ -27,9 +27,9 @@ void analogSensors(){
 
   // imu
   IMU.readSensor();
-  allSensors[24] = IMU.getAccelX_mss();
-  allSensors[25] = IMU.getAccelY_mss();
-  allSensors[26] = IMU.getAccelZ_mss();
+  allSensors[24] = IMU.getAccelX_mss()/9.81;
+  allSensors[25] = IMU.getAccelY_mss()/9.81;
+  allSensors[26] = IMU.getAccelZ_mss()/9.81;
 
   // strain gauges
   allSensors[27] = dimensionalizeStrainGuage(ads1115b.readADC_Differential_0_1(), STRAIN1_CLB);
@@ -56,4 +56,5 @@ void analogSensors(){
   allSensors[47] = IMU.getMagY_uT();
   allSensors[48] = IMU.getMagZ_uT();
   allSensors[49] = IMU.getTemperature_C();
+  allSensors[51] = can_read(50);
 }

@@ -190,6 +190,8 @@ float convertSensor(int sensorValue, int calibration=0){
 float dimensionalizeStrainGuage(float raw, float offset = 0);
 float dimensionalizeAdsADC(float raw, float offset = 0);
 float dimensionalizeMegaADC(float raw, float offset = 0);
+float dimensionalizeBrakeTemp(float raw, float offset = 0);
+float dimensionalizeSteeringAngle(float raw, float offset = 0);
 
 
 void setup() {
@@ -237,7 +239,7 @@ void setup() {
   IMU.setAccelRange(MPU9250::ACCEL_RANGE_4G);
 
   //Set IMU gyroscope range
-  //IMU.setGyroRange(MPU9250::GYRO_RANGE_500DPS);
+  IMU.setGyroRange(MPU9250::GYRO_RANGE_500DPS);
 
   //Set IMU digital low pass filter bandwith (can be 5, 10, 20, 41, 92, or 184 Hz
   //defaults to no filtering
@@ -325,8 +327,12 @@ void loop() {
 //  run checks for digital sensors every single loop, check for reading of 0
 
   digitalSensors();
-
- 
+  if (can_ready()) {
+    can_getvalue();
+  }
+ /*if (can_ready()) {
+  can_getvalue();
+ }*/
   
 //  check for analog reading every second
 //  frequency of change of data
