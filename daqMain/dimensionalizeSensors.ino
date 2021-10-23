@@ -33,5 +33,6 @@ float dimensionalizeBrakePress(float raw, float offset = 0) {
 }
 
 float dimensionalizeSteeringAngle(float raw, float offset = 0) {
-  return map(dimensionalizeMegaADC(raw)/1000, steeringAngleMinV, steeringAngleMaxV, steeringAngleMin, steeringAngleMax); //units: deg
+  return dimensionalizeMegaADC(raw)/1000;
+  //return map(dimensionalizeMegaADC(raw)/1000, steeringAngleMinV, steeringAngleMaxV, steeringAngleMin, steeringAngleMax); //units: deg
 }
