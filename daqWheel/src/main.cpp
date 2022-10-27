@@ -31,7 +31,7 @@ const int kBRCANFrameAddress = 0x403;
 // TX CAN Message
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> wheel_speed_signal{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> brake_temp_signal{};
-CANTXMessage<2> tx_message{can_bus, kFLCANFrameAddress, 4, 100, millis(), read_timer, wheel_speed_signal, brake_temp_signal};
+CANTXMessage<2> tx_message{can_bus, kFLCANFrameAddress, 4, 100, read_timer, wheel_speed_signal, brake_temp_signal};
 
 
 void ReadWheelSpeedSensor() {
