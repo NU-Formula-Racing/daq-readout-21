@@ -67,6 +67,5 @@ void setup() {
 
 void loop() {
   read_timer.Tick(millis());
-  can_bus.Tick();
 }
 
