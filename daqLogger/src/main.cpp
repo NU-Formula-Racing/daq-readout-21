@@ -93,11 +93,11 @@ unsigned long previousTimeAnalog = millis();
 void saveData(){
   // reopen file
   sensorData = SD.open(fileName, FILE_WRITE);
-    if (sensorData){
-     // print line into csv
-      sensorData.println(dataString);
-      sensorData.close();
-      Serial.println(dataString);
+  if (sensorData){
+    // print line into csv
+    sensorData.println(dataString);
+    sensorData.close();
+    Serial.println(dataString);
    } else {
     Serial.println("Error saving values to file !");
   }
@@ -113,7 +113,7 @@ void compileCurData(){
 }
 
 void setup(void){
-  Serial.begin(57600);
+  Serial.begin(9600);
   Serial.print("Initializing RTC...");
 
   #ifndef ESP8266
@@ -132,6 +132,7 @@ void setup(void){
   }
 
   rtc.start();
+  DateTime now = rtc.now();
 
   float drift = 43; // seconds plus or minus over oservation period - set to 0 to cancel previous calibration.
   float period_sec = (7 * 86400);  // total obsevation period in seconds (86400 = seconds in 1 day:  7 days = (7 * 86400) seconds )
@@ -144,7 +145,6 @@ void setup(void){
 
   Serial.print("Offset is "); Serial.println(offset); // Print to control offset
 
-  Serial.begin(9600);
   Serial.print("Initializing SD card...");
 
   if (!SD.begin(CSpin)) {
@@ -152,7 +152,8 @@ void setup(void){
   } else{
     Serial.print("Card Initialized.");
 
-    fileName = "test";
+    fileName = "test " + String(now.month()) + "/"+ String(now.day()) + "/" + String(now.year()) + "-" + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + ":";
+
     sensorData = SD.open(fileName, FILE_WRITE);
 
     if (sensorData){
