@@ -87,18 +87,18 @@ void compileCurData(delta){
 File sensorData;
 String fileName;
 String dataString ="";
-const int CSpin = 53;
+const int CSpin = 5;
 unsigned long previousTimeAnalog = millis();
 
 void saveData(){
   // reopen file
   sensorData = SD.open(fileName, FILE_WRITE);
   if (sensorData){
-    // print line into csv
-    sensorData.println(dataString);
-    sensorData.close();
-    Serial.println(dataString);
-   } else {
+  // print line into csv
+  sensorData.println(dataString);
+  sensorData.close();
+  Serial.println(dataString);
+  } else {
     Serial.println("Error saving values to file !");
   }
 }
@@ -152,13 +152,15 @@ void setup(void){
   } else{
     Serial.print("Card Initialized.");
 
-    fileName = "test " + String(now.month()) + "/"+ String(now.day()) + "/" + String(now.year()) + "-" + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()) + ":";
+    // New file name not working yet, does work with /test.txt
+    fileName = "/test" + String(now.month()) + "-" + String(now.day()) + "-" + String(now.year()) + "-" + String(now.hour()) + "-" + String(now.minute()) + "-" + String(now.second()) + ".txt";
 
     sensorData = SD.open(fileName, FILE_WRITE);
 
     if (sensorData){
-      sensorData.println("Month, Day, Year, Hour, Minute, Second");
+      dataString = "Month, Day, Year, Hour, Minute, Second";
       //sensorData.println("FL_VSS,FR_VSS,BL_VSS,BR_VSS,FL_BRK_TMP,FR_BRK_TMP,BL_BRK_TMP,BR_BRK_TMP,FL_SUS_POT,FR_SUS_POT,BL_SUS_POT,BR_SUS_POT,F_BRK_PRES,B_BRK_PRES,STEER_ANG,TPS,OIL_PRES,OIL_TEMP,COOL_TEMP,MAP,MAT,NEUT,LAMBDA1,LAMBDA2,ACCELX,ACCELY,ACCELZ,STRAIN1,STRAIN2,STRAIN3,STRAIN4,PTUBE1,PTUBE2,PTUBE3,PTUBE4,PTUBE5,PTUBE6,PTUBE7,PTUBE8,PTUBE9,PTUBE10,PTUBE11,PTUBE12,GYROX,GYROY,GYROZ,MAGNETX,MAGNETY,MAGNETZ,DAQTEMP");
+      saveData();
       sensorData.close();
     }
     saveData();
@@ -176,12 +178,10 @@ void loop() {
     // check for analog reading every second
     if (currentTime - previousTimeAnalog > 1000) {
       previousTimeAnalog = currentTime;
-      dataString = "";
-      dataString = dataString + now.month() + ","+ now.day() + "," + now.year() + ","+ now.hour() + "," + now.minute() + "," + now.second() + ",";
+      dataString = dataString + "\n" + now.month() + ","+ now.day() + "," + now.year() + ","+ now.hour() + "," + now.minute() + "," + now.second();
       saveData();
     }
   }
-  
   
   
 
