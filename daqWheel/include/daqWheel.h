@@ -6,7 +6,7 @@
 class WheelBoard
 {
     public:
-        static constexpr int wheelSpeedSensorPin = 1;
+        static constexpr int wheelSpeedSensorPin = 34;
         WheelBoard();
         void ReadWheelSpeedSensorDuration();
         float ReadWheelSpeedSensor();
@@ -14,7 +14,7 @@ class WheelBoard
 
     private:
         // pins
-        static constexpr int brakeTempSensorPin = 2;
+        static constexpr int brakeTempSensorPin = 35;
         // scalars and offsets
         static constexpr float brakeTempScalar = 1;
         static constexpr float brakeTempOffset = 0;

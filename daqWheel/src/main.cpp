@@ -43,6 +43,7 @@ void ReadBrakeTempSensor() {
 }
 
 void IRAM_ATTR WheelSpeedISR() {
+  Serial.print("Read 1");
 	wheel_board.ReadWheelSpeedSensorDuration();
 }
 
@@ -62,7 +63,7 @@ void setup() {
 
   //Initialize our timer(s)
   read_timer.AddTimer(100, ReadWheelSpeedSensor);
-  read_timer.AddTimer(100, ReadBrakeTempSensor);
+  // read_timer.AddTimer(100, ReadBrakeTempSensor);
 }
 
 void loop() {
