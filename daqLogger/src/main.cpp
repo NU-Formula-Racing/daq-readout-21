@@ -21,7 +21,7 @@ RTC_PCF8523 rtc;
 //     Time, Motor temp, Inverter temp, Coolant temp, Remaining battery, 
 //     Battery temp, Power output, Throttle, HV Battery voltage
 //   Read LP CAN
-//     Time (RTC ?), Wheel Speed (one for each wheel), Break temp (for each break),
+//     Time (RTC), Wheel Speed (one for each wheel), Break temp (for each break),
 //     Break pressure (for front/back breaks), LV Battery voltage
 //   Store information to SD Card
 //     Use CSV
@@ -44,45 +44,38 @@ TeensyCAN<1> can_bus{};
 // The tx and rx pins are constructor arguments to ESPCan, which default to TX = 5, RX = 4
 ESPCAN can_bus{};
 #endif
-// How do I differentiate HP vs LP???
+
+VirtualTimerGroup read_timer;
 
 
-// Read from CAN:
-// Use CANRXMessage for fr, fl, br, bl wheels
-//    When to use DecodeSignals?
+const int kFLCANFrameAddress = 0x400;
+const int kFRCANFrameAddress = 0x401;
+const int kBLCANFrameAddress = 0x402;
+const int kBRCANFrameAddress = 0x403;
 
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> wheel_speed_signal{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> brake_temp_signal{};
+CANRXMessage<2> rx_message_wheel{can_bus, kFLCANFrameAddress, read_timer, wheel_speed_signal, brake_temp_signal};
 
+const int kGPS_CAN = 0x430;
+const int kACCEL_CAN = 0x431;
+const int kGYRO_CAN = 0x432;
+const int kGYRO_2_CAN = 0x432;
 
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> accel_x{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> accel_y{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> accel_z{};
+CANRXMessage<3> rx_message_accel{can_bus, kACCEL_CAN, read_timer, accel_x, accel_y, accel_z};
 
-// Store to SD
-//    Create dict of 10ms, 100ms, 1000ms 
-//       {10:[RTC, Acelerometer], 100:[Wheel Speed, GPS], 1000:[Temps, Battery Voltage]}
-//    How dict operates
-//       timer %10 = 0, store info from dict[10]; 
-//       timer %100 = 0, store dict[100]; 
-//       timer %1000 = 0, store dict[1000];
-//
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_x{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_y{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_z{}; 
+CANRXMessage<3> rx_message_gyro{can_bus, kGYRO_CAN, read_timer, gyro_x, gyro_y, gyro_z};
 
-/*
-// pulls all analog values and compiles into CSV string
-void compileCurData(delta){
-  analogSensors();
-  // convert to CSV
-  dataString = "";
-  if (delta == 10){
-    dataString = 0;
-    
-  }
-  if (delta == 100){
-    dataString = 1;
-  }
-  if (delta == 1000){
-    dataString = 10;
-  }
-  //for (int i = 0; i < sizeof(allSensors)/sizeof(float); i = i + 1) {
-  //  dataString = dataString + String(allSensors[i]) + ",";
-  //}
-}*/
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lon_signal{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lat_signal{}; 
+CANRXMessage<2> rx_message_pos{can_bus, kGPS_CAN, read_timer, lon_signal, lat_signal};
+
 
 File sensorData;
 String fileName;
@@ -94,10 +87,10 @@ void saveData(){
   // reopen file
   sensorData = SD.open(fileName, FILE_WRITE);
   if (sensorData){
-  // print line into csv
-  sensorData.println(dataString);
-  sensorData.close();
-  Serial.println(dataString);
+    // print line into csv
+    sensorData.println(dataString);
+    sensorData.close();
+    Serial.println(dataString);
   } else {
     Serial.println("Error saving values to file !");
   }
@@ -153,12 +146,12 @@ void setup(void){
     Serial.print("Card Initialized.");
 
     // New file name not working yet, does work with /test.txt
-    fileName = "/test" + String(now.month()) + "-" + String(now.day()) + "-" + String(now.year()) + "-" + String(now.hour()) + "-" + String(now.minute()) + "-" + String(now.second()) + ".txt";
+    fileName = "/test-" + String(now.month()) + "-" + String(now.day()) + "-" + String(now.year()) + "-" + String(now.hour()) + "-" + String(now.minute()) + "-" + String(now.second()) + ".txt";
 
     sensorData = SD.open(fileName, FILE_WRITE);
 
     if (sensorData){
-      dataString = "Month, Day, Year, Hour, Minute, Second";
+      dataString = "Month, Day, Year, Hour, Minute, Second, CAN Msg";
       //sensorData.println("FL_VSS,FR_VSS,BL_VSS,BR_VSS,FL_BRK_TMP,FR_BRK_TMP,BL_BRK_TMP,BR_BRK_TMP,FL_SUS_POT,FR_SUS_POT,BL_SUS_POT,BR_SUS_POT,F_BRK_PRES,B_BRK_PRES,STEER_ANG,TPS,OIL_PRES,OIL_TEMP,COOL_TEMP,MAP,MAT,NEUT,LAMBDA1,LAMBDA2,ACCELX,ACCELY,ACCELZ,STRAIN1,STRAIN2,STRAIN3,STRAIN4,PTUBE1,PTUBE2,PTUBE3,PTUBE4,PTUBE5,PTUBE6,PTUBE7,PTUBE8,PTUBE9,PTUBE10,PTUBE11,PTUBE12,GYROX,GYROY,GYROZ,MAGNETX,MAGNETY,MAGNETZ,DAQTEMP");
       saveData();
       sensorData.close();
@@ -171,6 +164,8 @@ void setup(void){
 void loop() {
   unsigned long currentTime = millis();
 
+  can_bus.Tick();
+
   DateTime now = rtc.now();
 
   if (currentTime < 10000) {
@@ -178,7 +173,9 @@ void loop() {
     // check for analog reading every second
     if (currentTime - previousTimeAnalog > 1000) {
       previousTimeAnalog = currentTime;
-      dataString = dataString + "\n" + now.month() + ","+ now.day() + "," + now.year() + ","+ now.hour() + "," + now.minute() + "," + now.second();
+      //dataString = dataString + "\n" + now.month() + "," + now.day() + "," + now.year() + ","+ now.hour() + "," + now.minute() + "," + now.second();
+
+      dataString = dataString + "\n" + float(wheel_speed_signal), " ", float(brake_temp_signal), " ", float(accel_x), " ", float(accel_y), " ", float(accel_z), " ", float(gyro_x), " ", float(gyro_y), " ", float(gyro_z), " ", float(lon_signal), " ", float(lat_signal);
       saveData();
     }
   }

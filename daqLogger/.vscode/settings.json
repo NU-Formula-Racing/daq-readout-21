@@ -1,3 +1,6 @@
 {
-    "arduino.path": "C:\\Users\\rockm\\AppData\\Local\\Programs\\Arduino IDE"
+    "arduino.path": "C:\\Users\\rockm\\AppData\\Local\\Programs\\Arduino IDE",
+    "files.associations": {
+        "new": "cpp"
+    }
 }
