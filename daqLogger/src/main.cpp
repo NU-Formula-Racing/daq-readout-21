@@ -55,7 +55,7 @@ const int kBRCANFrameAddress = 0x403;
 
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> wheel_speed_signal{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> brake_temp_signal{};
-CANRXMessage<2> rx_message_wheel{can_bus, kFLCANFrameAddress, read_timer, wheel_speed_signal, brake_temp_signal};
+CANRXMessage<2> rx_message_wheel{can_bus, kFLCANFrameAddress, wheel_speed_signal, brake_temp_signal};
 
 const int kGPS_CAN = 0x430;
 const int kACCEL_CAN = 0x431;
@@ -65,16 +65,16 @@ const int kGYRO_2_CAN = 0x432;
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> accel_x{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> accel_y{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> accel_z{};
-CANRXMessage<3> rx_message_accel{can_bus, kACCEL_CAN, read_timer, accel_x, accel_y, accel_z};
+CANRXMessage<3> rx_message_accel{can_bus, kACCEL_CAN, accel_x, accel_y, accel_z};
 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_x{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_y{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_z{}; 
-CANRXMessage<3> rx_message_gyro{can_bus, kGYRO_CAN, read_timer, gyro_x, gyro_y, gyro_z};
+CANRXMessage<3> rx_message_gyro{can_bus, kGYRO_CAN, gyro_x, gyro_y, gyro_z};
 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lon_signal{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lat_signal{}; 
-CANRXMessage<2> rx_message_pos{can_bus, kGPS_CAN, read_timer, lon_signal, lat_signal};
+CANRXMessage<2> rx_message_pos{can_bus, kGPS_CAN, lon_signal, lat_signal};
 
 
 File sensorData;
