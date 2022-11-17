@@ -42,7 +42,7 @@ TeensyCAN<1> can_bus{};
 #ifdef ARDUINO_ARCH_ESP32
 #include "esp_can.h"
 // The tx and rx pins are constructor arguments to ESPCan, which default to TX = 5, RX = 4
-ESPCAN can_bus{};
+ESPCAN can_bus{GPIO_NUM_17, GPIO_NUM_16};
 #endif
 
 VirtualTimerGroup read_timer;
@@ -64,24 +64,27 @@ const int kGYRO_2_CAN = 0x432;
 
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> accel_x{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> accel_y{}; 
-CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> accel_z{};
+CANSignal<float, 32, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> accel_z{};
 CANRXMessage<3> rx_message_accel{can_bus, kACCEL_CAN, accel_x, accel_y, accel_z};
 
-CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_x{}; 
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_x{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_y{}; 
-CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_z{}; 
+CANSignal<float, 32, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_z{}; 
 CANRXMessage<3> rx_message_gyro{can_bus, kGYRO_CAN, gyro_x, gyro_y, gyro_z};
 
-CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lon_signal{}; 
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lon_signal{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lat_signal{}; 
 CANRXMessage<2> rx_message_pos{can_bus, kGPS_CAN, lon_signal, lat_signal};
 
+const int CSpin = 5;
 
 File sensorData;
 String fileName;
 String dataString ="";
-const int CSpin = 5;
-unsigned long previousTimeAnalog = millis();
+
+unsigned long previousTime10 = millis();
+unsigned long previousTime100 = millis();
+unsigned long previousTime1000 = millis();
 
 void saveData(){
   // reopen file
@@ -108,6 +111,8 @@ void compileCurData(){
 void setup(void){
   Serial.begin(9600);
   Serial.print("Initializing RTC...");
+
+  can_bus.Initialize(ICAN::BaudRate::kBaud1M);
 
   #ifndef ESP8266
     while (!Serial); // wait for serial port to connect. Needed for native USB
@@ -146,17 +151,15 @@ void setup(void){
     Serial.print("Card Initialized.");
 
     // New file name not working yet, does work with /test.txt
-    fileName = "/test-" + String(now.month()) + "-" + String(now.day()) + "-" + String(now.year()) + "-" + String(now.hour()) + "-" + String(now.minute()) + "-" + String(now.second()) + ".txt";
+    fileName = "/test-" + String(now.month()) + "-" + String(now.day()) + "-" + String(now.year()) + "-" + String(now.hour()) + "-" + String(now.minute()) + "-" + String(now.second()) + ".csv";
 
     sensorData = SD.open(fileName, FILE_WRITE);
 
     if (sensorData){
-      dataString = "Month, Day, Year, Hour, Minute, Second, CAN Msg";
-      //sensorData.println("FL_VSS,FR_VSS,BL_VSS,BR_VSS,FL_BRK_TMP,FR_BRK_TMP,BL_BRK_TMP,BR_BRK_TMP,FL_SUS_POT,FR_SUS_POT,BL_SUS_POT,BR_SUS_POT,F_BRK_PRES,B_BRK_PRES,STEER_ANG,TPS,OIL_PRES,OIL_TEMP,COOL_TEMP,MAP,MAT,NEUT,LAMBDA1,LAMBDA2,ACCELX,ACCELY,ACCELZ,STRAIN1,STRAIN2,STRAIN3,STRAIN4,PTUBE1,PTUBE2,PTUBE3,PTUBE4,PTUBE5,PTUBE6,PTUBE7,PTUBE8,PTUBE9,PTUBE10,PTUBE11,PTUBE12,GYROX,GYROY,GYROZ,MAGNETX,MAGNETY,MAGNETZ,DAQTEMP");
+      dataString = "Date, Time, Wheel_Speed, Brake_Temp, Accel_x, Accel_y, Accel_z, Gyro_x, Gyro_y, Gyro_z, Longitude, Latitude";
       saveData();
-      sensorData.close();
     }
-    saveData();
+
     sensorData.close();
   }
 }
@@ -171,45 +174,26 @@ void loop() {
   if (currentTime < 10000) {
 
     // check for analog reading every second
-    if (currentTime - previousTimeAnalog > 1000) {
-      previousTimeAnalog = currentTime;
+    if (currentTime - previousTime1000 > 1000) {
+      previousTime1000 = currentTime;
       //dataString = dataString + "\n" + now.month() + "," + now.day() + "," + now.year() + ","+ now.hour() + "," + now.minute() + "," + now.second();
-
-      dataString = dataString + "\n" + float(wheel_speed_signal), " ", float(brake_temp_signal), " ", float(accel_x), " ", float(accel_y), " ", float(accel_z), " ", float(gyro_x), " ", float(gyro_y), " ", float(gyro_z), " ", float(lon_signal), " ", float(lat_signal);
+      // Ambient temp, Brake temp, LV Battery voltage, HV Battery voltage
+      dataString = dataString + "\n" + now.month() + "-" + now.day() + "-" + now.year() + ", "+ now.hour() + ":" + now.minute() + ":" + now.second() + float(wheel_speed_signal) + ", " + float(brake_temp_signal) + ", " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
+      saveData();
+    } else if (currentTime - previousTime100 > 100){
+      previousTime100 = currentTime;
+      // Wheel Speed, GPS, Suspension
+      dataString = dataString + "\n" + now.month() + "-" + now.day() + "-" + now.year() + ", "+ now.hour() + ":" + now.minute() + ":" + now.second() + float(wheel_speed_signal) + ", , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
+      saveData();
+    } else if (currentTime - previousTime10 > 10){
+      previousTime10 = currentTime;
+      // RTC, Accelerometer
+      dataString = dataString + "\n" + now.month() + "-" + now.day() + "-" + now.year() + ", "+ now.hour() + ":" + now.minute() + ":" + now.second() + ", , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", , , , , ";
       saveData();
     }
   }
   
   
-
-  //digitalWrite(10, LOW);
-
-  /*
-  unsigned long currentTime = millis();
-  
-  // run checks for digital sensors every single loop, check for reading of 0
-  if (currentTime < 10000) {
-    digitalSensor();
-
-    // check for analog reading every 10 ms
-    if (currentTime - previousTime10Analog > 10) {
-      previousTime10Analog = currentTime;
-      compileCurData();
-      saveData();
-    }
-    // check for analog reading every 100 ms
-    if (currentTime - previousTime100Analog > 100) {
-      previousTime100Analog = currentTime;
-      compileCurData();
-      saveData();
-    }
-    // check for analog reading every 1000 ms
-    if (currentTime - previousTime10Analog > 1000) {
-      previousTime1000Analog = currentTime;
-      compileCurData();
-      saveData();
-    }
-  }*/
 }
 
 
