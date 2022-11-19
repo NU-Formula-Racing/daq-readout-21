@@ -35,15 +35,22 @@ CANTXMessage<2> tx_message{can_bus, kFLCANFrameAddress, 4, 100, read_timer, whee
 
 
 void ReadWheelSpeedSensor() {
-	wheel_speed_signal = wheel_board.ReadWheelSpeedSensor();
+	// wheel_speed_signal = wheel_board.ReadWheelSpeedSensor();
+  wheel_speed_signal = digitalRead(wheel_board.wheelSpeedSensorPin);
+  Serial.println("Wheel speed");
+  Serial.println(wheel_speed_signal);
+  Serial.println("\n");
 }
 
 void ReadBrakeTempSensor() {
 	brake_temp_signal = wheel_board.ReadBrakeTempSensor();
+  Serial.println("Brake temp");
+  Serial.println(brake_temp_signal);
+  Serial.println("\n");
 }
 
 void IRAM_ATTR WheelSpeedISR() {
-  Serial.print("Read 1");
+  // Serial.print("Read 1");
 	wheel_board.ReadWheelSpeedSensorDuration();
 }
 
@@ -51,7 +58,7 @@ void setup() {
 
   #ifdef SERIAL_DEBUG
   //Initialize serial output 
-  Serial.begin(115200);
+  Serial.begin(9600);
   #endif
 
   //This only works on ESP32, will crash on compile for Teensy
@@ -63,10 +70,11 @@ void setup() {
 
   //Initialize our timer(s)
   read_timer.AddTimer(100, ReadWheelSpeedSensor);
-  // read_timer.AddTimer(100, ReadBrakeTempSensor);
+  read_timer.AddTimer(100, ReadBrakeTempSensor);
 }
 
 void loop() {
+  delay(0);
   read_timer.Tick(millis());
 }
 
