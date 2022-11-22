@@ -45,9 +45,6 @@ TeensyCAN<1> can_bus{};
 ESPCAN can_bus{GPIO_NUM_17, GPIO_NUM_16};
 #endif
 
-VirtualTimerGroup read_timer;
-
-
 const int kFLCANFrameAddress = 0x400;
 const int kFRCANFrameAddress = 0x401;
 const int kBLCANFrameAddress = 0x402;
@@ -82,9 +79,7 @@ File sensorData;
 String fileName;
 String dataString ="";
 
-unsigned long previousTime10 = millis();
-unsigned long previousTime100 = millis();
-unsigned long previousTime1000 = millis();
+VirtualTimerGroup timer_group;
 
 void saveData(){
   // reopen file
@@ -99,20 +94,41 @@ void saveData(){
   }
 }
 
-void compileCurData(){
-  // convert to CSV
-  dataString = "";
-  for (int i = 1; i <= 4; i = i + 1) {
-    dataString = dataString + "Test "+ i + ",";
-  }
-  
+void sensor10ms(){
+  DateTime now = rtc.now();
+
+  dataString = dataString + "\n" + now.timestamp() + ", , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", , , , , ";
+  saveData();
+}
+
+void sensor100ms(){
+  DateTime now = rtc.now();
+
+  dataString = dataString + "\n" + now.timestamp() + float(wheel_speed_signal) + ", , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
+  saveData();
+}
+
+void sensor1000ms(){
+  DateTime now = rtc.now();
+
+  dataString = dataString + "\n" + now.timestamp() + float(wheel_speed_signal) + ", " + float(brake_temp_signal) + ", " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
+  saveData();
 }
 
 void setup(void){
   Serial.begin(9600);
-  Serial.print("Initializing RTC...");
 
+  Serial.print("Initializing CAN...");
   can_bus.Initialize(ICAN::BaudRate::kBaud1M);
+  Serial.print("CAN Initialized");
+
+  Serial.print("Initializing timers...");
+  timer_group.AddTimer(10U, sensor10ms);
+  timer_group.AddTimer(100U, sensor100ms);
+  timer_group.AddTimer(1000U, sensor1000ms);
+  Serial.print("Timers Initialized");
+
+  Serial.print("Initializing RTC...");
 
   #ifndef ESP8266
     while (!Serial); // wait for serial port to connect. Needed for native USB
@@ -151,12 +167,12 @@ void setup(void){
     Serial.print("Card Initialized.");
 
     // New file name not working yet, does work with /test.txt
-    fileName = "/test-" + String(now.month()) + "-" + String(now.day()) + "-" + String(now.year()) + "-" + String(now.hour()) + "-" + String(now.minute()) + "-" + String(now.second()) + ".csv";
+    fileName = "/test-" + now.timestamp() + ".csv";
 
     sensorData = SD.open(fileName, FILE_WRITE);
 
     if (sensorData){
-      dataString = "Date, Time, Wheel_Speed, Brake_Temp, Accel_x, Accel_y, Accel_z, Gyro_x, Gyro_y, Gyro_z, Longitude, Latitude";
+      dataString = "Timestamp, Wheel_Speed, Brake_Temp, Accel_x, Accel_y, Accel_z, Gyro_x, Gyro_y, Gyro_z, Longitude, Latitude";
       saveData();
     }
 
@@ -165,35 +181,10 @@ void setup(void){
 }
 
 void loop() {
-  unsigned long currentTime = millis();
 
   can_bus.Tick();
+  timer_group.Tick(millis());
 
-  DateTime now = rtc.now();
-
-  if (currentTime < 10000) {
-
-    // check for analog reading every second
-    if (currentTime - previousTime1000 > 1000) {
-      previousTime1000 = currentTime;
-      //dataString = dataString + "\n" + now.month() + "," + now.day() + "," + now.year() + ","+ now.hour() + "," + now.minute() + "," + now.second();
-      // Ambient temp, Brake temp, LV Battery voltage, HV Battery voltage
-      dataString = dataString + "\n" + now.month() + "-" + now.day() + "-" + now.year() + ", "+ now.hour() + ":" + now.minute() + ":" + now.second() + float(wheel_speed_signal) + ", " + float(brake_temp_signal) + ", " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
-      saveData();
-    } else if (currentTime - previousTime100 > 100){
-      previousTime100 = currentTime;
-      // Wheel Speed, GPS, Suspension
-      dataString = dataString + "\n" + now.month() + "-" + now.day() + "-" + now.year() + ", "+ now.hour() + ":" + now.minute() + ":" + now.second() + float(wheel_speed_signal) + ", , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
-      saveData();
-    } else if (currentTime - previousTime10 > 10){
-      previousTime10 = currentTime;
-      // RTC, Accelerometer
-      dataString = dataString + "\n" + now.month() + "-" + now.day() + "-" + now.year() + ", "+ now.hour() + ":" + now.minute() + ":" + now.second() + ", , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", , , , , ";
-      saveData();
-    }
-  }
-  
-  
 }
 
 
