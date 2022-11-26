@@ -31,6 +31,9 @@ void WheelBoard::ReadWheelSpeedSensorDuration()
  */
 float WheelBoard::ReadWheelSpeedSensor()
 {
+    Serial.println("Wheel speed sensor duration:");
+    Serial.print(pulse_duration);
+    Serial.println("\n");
     // Wheel constants
     const float kWheelCircumference = 1.26; //wheel circumference in m
     const float kMPStoMPH = 2.24; // m/s to MPH constant 

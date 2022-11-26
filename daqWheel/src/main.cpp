@@ -35,11 +35,15 @@ CANTXMessage<2> tx_message{can_bus, kFLCANFrameAddress, 4, 100, read_timer, whee
 
 
 void ReadWheelSpeedSensor() {
-	// wheel_speed_signal = wheel_board.ReadWheelSpeedSensor();
-  wheel_speed_signal = digitalRead(wheel_board.wheelSpeedSensorPin);
-  Serial.println("Wheel speed");
-  Serial.println(wheel_speed_signal);
+	wheel_speed_signal = wheel_board.ReadWheelSpeedSensor();
+  // int wheel_speed_dig_read = digitalRead(wheel_board.wheelSpeedSensorPin);
+  Serial.println("Wheel speed signal:");
+  Serial.print(wheel_speed_signal);
   Serial.println("\n");
+
+  // Serial.println("Wheel speed digital read:");
+  // Serial.print(wheel_speed_dig_read);
+  // Serial.println("\n");
 }
 
 void ReadBrakeTempSensor() {
@@ -50,7 +54,7 @@ void ReadBrakeTempSensor() {
 }
 
 void IRAM_ATTR WheelSpeedISR() {
-  // Serial.print("Read 1");
+  // Serial.print("Read 1 \n");
 	wheel_board.ReadWheelSpeedSensorDuration();
 }
 
@@ -69,8 +73,8 @@ void setup() {
   can_bus.Initialize(ICAN::BaudRate::kBaud1M);
 
   //Initialize our timer(s)
-  read_timer.AddTimer(100, ReadWheelSpeedSensor);
-  read_timer.AddTimer(100, ReadBrakeTempSensor);
+  read_timer.AddTimer(1000, ReadWheelSpeedSensor);
+  // read_timer.AddTimer(100, ReadBrakeTempSensor);
 }
 
 void loop() {
