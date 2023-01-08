@@ -7,6 +7,9 @@
 #include "can_interface.h"
 #include "virtualTimer.h"
 
+#define SPI_MOSI 18
+#define SPI_MISO 5
+#define SPI_SCK 4
 
 RTC_PCF8523 rtc;
 
@@ -42,38 +45,68 @@ TeensyCAN<1> can_bus{};
 #ifdef ARDUINO_ARCH_ESP32
 #include "esp_can.h"
 // The tx and rx pins are constructor arguments to ESPCan, which default to TX = 5, RX = 4
-ESPCAN can_bus{GPIO_NUM_17, GPIO_NUM_16};
+ESPCAN can_bus{GPIO_NUM_32, GPIO_NUM_27};
 #endif
 
+// CAN Addresses
 const int kFLCANFrameAddress = 0x400;
 const int kFRCANFrameAddress = 0x401;
 const int kBLCANFrameAddress = 0x402;
 const int kBRCANFrameAddress = 0x403;
-
-CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> wheel_speed_signal{}; 
-CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> brake_temp_signal{};
-CANRXMessage<2> rx_message_wheel{can_bus, kFLCANFrameAddress, wheel_speed_signal, brake_temp_signal};
-
+const int kBreak_CAN = 0x410;
 const int kGPS_CAN = 0x430;
 const int kACCEL_CAN = 0x431;
 const int kGYRO_CAN = 0x432;
-const int kGYRO_2_CAN = 0x432;
 
+// Front left wheel speed and temp
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> FL_wheel_speed_signal{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> FL_brake_temp_signal{};
+CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0), false> FL_suspension_position_signal{};
+CANRXMessage<3> rx_message_wheel{can_bus, kFLCANFrameAddress, FL_wheel_speed_signal, FL_brake_temp_signal, FL_suspension_position_signal};
+
+// Front right wheel speed and temp
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> FR_wheel_speed_signal{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> FR_brake_temp_signal{};
+CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0), false> FR_suspension_position_signal{};
+CANRXMessage<3> rx_message_wheel{can_bus, kFRCANFrameAddress, FR_wheel_speed_signal, FR_brake_temp_signal, FR_suspension_position_signal};
+
+// Back left wheel speed and temp
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> BL_wheel_speed_signal{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> BL_brake_temp_signal{};
+CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0), false> BL_suspension_position_signal{};
+CANRXMessage<3> rx_message_wheel{can_bus, kBLCANFrameAddress, BL_wheel_speed_signal, BL_brake_temp_signal, BL_suspension_position_signal};
+
+// Back right wheel speed and temp
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> BR_wheel_speed_signal{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> BR_brake_temp_signal{};
+CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0), false> BR_suspension_position_signal{};
+CANRXMessage<3> rx_message_wheel{can_bus, kBRCANFrameAddress, BR_wheel_speed_signal, BR_brake_temp_signal, BR_suspension_position_signal};
+
+// Break Pressure
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0), CANTemplateConvertFloat(0), true> F_break_pressure{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0), CANTemplateConvertFloat(0), true> R_break_pressure{}; 
+CANRXMessage<2> rx_message_break{can_bus, kBreak_CAN, F_break_pressure, R_break_pressure};
+
+// Acceleration
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> accel_x{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> accel_y{}; 
 CANSignal<float, 32, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> accel_z{};
 CANRXMessage<3> rx_message_accel{can_bus, kACCEL_CAN, accel_x, accel_y, accel_z};
 
+// Gyro
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_x{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_y{}; 
 CANSignal<float, 32, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_z{}; 
 CANRXMessage<3> rx_message_gyro{can_bus, kGYRO_CAN, gyro_x, gyro_y, gyro_z};
 
+// GPS
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lon_signal{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lat_signal{}; 
 CANRXMessage<2> rx_message_pos{can_bus, kGPS_CAN, lon_signal, lat_signal};
 
-const int CSpin = 5;
+const int CSpin = 19;
+const int SDA = 22;
+const int SCL = 23;
 
 File sensorData;
 String fileName;
@@ -94,45 +127,35 @@ void saveData(){
   }
 }
 
+
+// Make these iteratively
 void sensor10ms(){
   DateTime now = rtc.now();
 
-  dataString = dataString + "\n" + now.timestamp() + ", , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", , , , , ";
+  dataString = dataString + "\n" + now.timestamp() + ", , , , , , , , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", , , , , ";
   saveData();
 }
 
 void sensor100ms(){
   DateTime now = rtc.now();
 
-  dataString = dataString + "\n" + now.timestamp() + float(wheel_speed_signal) + ", , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
+  dataString = dataString + "\n" + now.timestamp() + float(FL_wheel_speed_signal) + float(FR_wheel_speed_signal) + float(BL_wheel_speed_signal) + float(BR_wheel_speed_signal) + ", , , , , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
   saveData();
 }
 
 void sensor1000ms(){
   DateTime now = rtc.now();
 
-  dataString = dataString + "\n" + now.timestamp() + float(wheel_speed_signal) + ", " + float(brake_temp_signal) + ", " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
+  dataString = dataString + "\n" + now.timestamp() + float(FL_wheel_speed_signal) + float(FR_wheel_speed_signal) + float(BL_wheel_speed_signal) + float(BR_wheel_speed_signal) + ", " + float(FL_brake_temp_signal) + float(FR_brake_temp_signal) + float(BL_brake_temp_signal) + float(BR_brake_temp_signal) + ", " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
   saveData();
 }
 
-void setup(void){
-  Serial.begin(9600);
-
-  Serial.print("Initializing CAN...");
-  can_bus.Initialize(ICAN::BaudRate::kBaud1M);
-  Serial.print("CAN Initialized");
-
-  Serial.print("Initializing timers...");
-  timer_group.AddTimer(10U, sensor10ms);
-  timer_group.AddTimer(100U, sensor100ms);
-  timer_group.AddTimer(1000U, sensor1000ms);
-  Serial.print("Timers Initialized");
-
-  Serial.print("Initializing RTC...");
-
+DateTime init_RTC(){
   #ifndef ESP8266
     while (!Serial); // wait for serial port to connect. Needed for native USB
   #endif
+
+  Wire.begin(SDA,SCL);
 
   if (! rtc.begin()) {
     Serial.println("Couldn't find RTC");
@@ -159,8 +182,10 @@ void setup(void){
 
   Serial.print("Offset is "); Serial.println(offset); // Print to control offset
 
-  Serial.print("Initializing SD card...");
+  return now;
+}
 
+void init_SD(DateTime now){
   if (!SD.begin(CSpin)) {
     Serial.println("Card failed/not found.");
   } else{
@@ -178,6 +203,29 @@ void setup(void){
 
     sensorData.close();
   }
+}
+
+void setup(void){
+  Serial.begin(9600);
+
+  Serial.print("Initializing CAN...");
+  can_bus.Initialize(ICAN::BaudRate::kBaud1M);
+  Serial.print("CAN Initialized");
+
+  Serial.print("Initializing timers...");
+  timer_group.AddTimer(10U, sensor10ms);
+  timer_group.AddTimer(100U, sensor100ms);
+  timer_group.AddTimer(1000U, sensor1000ms);
+  Serial.print("Timers Initialized");
+
+  Serial.print("Initializing RTC...");
+  DateTime now = init_RTC();
+  Serial.print("RTC Initialized");
+
+  Serial.print("Initializing SD card...");
+  init_SD(now);
+  Serial.print("SD Card Initialized");
+
 }
 
 void loop() {
