@@ -7,10 +7,6 @@
 #include "can_interface.h"
 #include "virtualTimer.h"
 
-#define SPI_MOSI 18
-#define SPI_MISO 5
-#define SPI_SCK 4
-
 RTC_PCF8523 rtc;
 
 // FAILURE MODES:
@@ -62,25 +58,25 @@ const int kGYRO_CAN = 0x432;
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> FL_wheel_speed_signal{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> FL_brake_temp_signal{};
 CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0), false> FL_suspension_position_signal{};
-CANRXMessage<3> rx_message_wheel{can_bus, kFLCANFrameAddress, FL_wheel_speed_signal, FL_brake_temp_signal, FL_suspension_position_signal};
+CANRXMessage<3> rx_message_FLwheel{can_bus, kFLCANFrameAddress, FL_wheel_speed_signal, FL_brake_temp_signal, FL_suspension_position_signal};
 
 // Front right wheel speed and temp
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> FR_wheel_speed_signal{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> FR_brake_temp_signal{};
 CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0), false> FR_suspension_position_signal{};
-CANRXMessage<3> rx_message_wheel{can_bus, kFRCANFrameAddress, FR_wheel_speed_signal, FR_brake_temp_signal, FR_suspension_position_signal};
+CANRXMessage<3> rx_message_FRwheel{can_bus, kFRCANFrameAddress, FR_wheel_speed_signal, FR_brake_temp_signal, FR_suspension_position_signal};
 
 // Back left wheel speed and temp
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> BL_wheel_speed_signal{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> BL_brake_temp_signal{};
 CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0), false> BL_suspension_position_signal{};
-CANRXMessage<3> rx_message_wheel{can_bus, kBLCANFrameAddress, BL_wheel_speed_signal, BL_brake_temp_signal, BL_suspension_position_signal};
+CANRXMessage<3> rx_message_BLwheel{can_bus, kBLCANFrameAddress, BL_wheel_speed_signal, BL_brake_temp_signal, BL_suspension_position_signal};
 
 // Back right wheel speed and temp
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> BR_wheel_speed_signal{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> BR_brake_temp_signal{};
 CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0), false> BR_suspension_position_signal{};
-CANRXMessage<3> rx_message_wheel{can_bus, kBRCANFrameAddress, BR_wheel_speed_signal, BR_brake_temp_signal, BR_suspension_position_signal};
+CANRXMessage<3> rx_message_BRwheel{can_bus, kBRCANFrameAddress, BR_wheel_speed_signal, BR_brake_temp_signal, BR_suspension_position_signal};
 
 // Break Pressure
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0), CANTemplateConvertFloat(0), true> F_break_pressure{}; 
@@ -104,9 +100,9 @@ CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-4
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lat_signal{}; 
 CANRXMessage<2> rx_message_pos{can_bus, kGPS_CAN, lon_signal, lat_signal};
 
-const int CSpin = 19;
-const int SDA = 22;
-const int SCL = 23;
+const int CSpin = 5;
+const int new_SDA = 21;
+const int new_SCL = 22;
 
 File sensorData;
 String fileName;
@@ -155,7 +151,7 @@ DateTime init_RTC(){
     while (!Serial); // wait for serial port to connect. Needed for native USB
   #endif
 
-  Wire.begin(SDA,SCL);
+  Wire.begin(new_SDA,new_SCL);
 
   if (! rtc.begin()) {
     Serial.println("Couldn't find RTC");
