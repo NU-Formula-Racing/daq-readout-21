@@ -188,7 +188,7 @@ void init_SD(DateTime now){
     Serial.print("Card Initialized.");
 
     // New file name not working yet, does work with /test.txt
-    fileName = "/test-" + now.timestamp() + ".csv";
+    fileName = "/test-" + String(now.month()) + "-" + String(now.day()) + "-" + String(now.year()) + "->" + String(now.hour()) + "-" + String(now.minute()) + ".csv";
 
     sensorData = SD.open(fileName, FILE_WRITE);
 
