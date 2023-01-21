@@ -1,0 +1,7 @@
+// IGNORE
+/*
+class logger
+{
+    public: 
+        
+}*/
