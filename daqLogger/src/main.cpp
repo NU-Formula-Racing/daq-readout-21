@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <SD.h>
 #include <SPI.h>
+//#include <esp32-hal-gpio.h>
 
 #include "RTClib.h"
 #include "virtualTimer.h"
@@ -40,7 +41,7 @@ TeensyCAN<1> can_bus{};
 
 #ifdef ARDUINO_ARCH_ESP32
 #include "esp_can.h"
-// The tx and rx pins are constructor arguments to ESPCan, which default to TX = 5, RX = 4
+// The tx and rx pins are constructor arguments to ESPCan, which default to TX = 5, RX = 4; Currenlty tx=32, rx=27
 ESPCAN can_bus{GPIO_NUM_32, GPIO_NUM_27};
 #endif
 
@@ -54,7 +55,7 @@ const int kTemp_CAN = 0x420;
 const int kGPS_CAN = 0x430;
 const int kACCEL_CAN = 0x431;
 const int kGYRO_CAN = 0x432;
-
+/*
 // Front left wheel speed and temp
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> FL_wheel_speed_signal{}; 
 CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> FL_brake_temp_signal{};
@@ -97,15 +98,16 @@ CANSignal<float, 32, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-
 CANRXMessage<3> rx_message_gyro{can_bus, kGYRO_CAN, gyro_x, gyro_y, gyro_z};
 
 // GPS
-CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lon_signal{}; 
-CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lat_signal{}; 
-CANRXMessage<2> rx_message_pos{can_bus, kGPS_CAN, lon_signal, lat_signal};
+//CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lon_signal{}; 
+//CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lat_signal{}; 
+//CANRXMessage<2> rx_message_gps{can_bus, kGPS_CAN, lon_signal, lat_signal};
 
 // Temp
-CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> motor_temp_signal{};
-CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> coolant_temp_signal{};
-CANRXMessage<2> rx_message_temp{can_bus, kTemp_CAN, motor_temp_signal, coolant_temp_signal};
-
+//CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> motor_temp_signal{};
+//CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> coolant_temp_signal{};
+//CANSignal<float, 32, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> ambient_temp_signal{};
+//CANRXMessage<3> rx_message_temp{can_bus, kTemp_CAN, motor_temp_signal, coolant_temp_signal, ambient_temp_signal};
+*/
 
 const int CSpin = 5;
 const int new_SDA = 21;
@@ -142,7 +144,8 @@ void sensor10ms(){
 void sensor100ms(){
   DateTime now = rtc.now();
 
-  dataString = dataString + "\n" + now.timestamp() + float(motor_temp_signal) + float(coolant_temp_signal);
+  dataString = dataString + "\n" + now.timestamp() + ", ";// + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z);//float(FL_wheel_speed_signal) + ", " + float(FR_wheel_speed_signal);
+
   //dataString = dataString + "\n" + now.timestamp() + float(FL_wheel_speed_signal) + float(FR_wheel_speed_signal) + float(BL_wheel_speed_signal) + float(BR_wheel_speed_signal) + ", , , , , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
   saveData();
 }
@@ -196,12 +199,12 @@ void init_SD(DateTime now){
     Serial.print("Card Initialized.");
 
     // New file name not working yet, does work with /test.txt
-    fileName = "/test-" + String(now.month()) + "-" + String(now.day()) + "-" + String(now.year()) + "=" + String(now.hour()) + "-" + String(now.minute()) + ".csv";
+    fileName = "/test-" + String(now.month()) + "-" + String(now.day()) + "=" + String(now.hour()) + "-" + String(now.minute()) + ".csv";
 
     sensorData = SD.open(fileName, FILE_WRITE);
 
     if (sensorData){
-      dataString = "Timestamp, Wheel_Speed, Brake_Temp, Accel_x, Accel_y, Accel_z, Gyro_x, Gyro_y, Gyro_z, Longitude, Latitude";
+      dataString = "Timestamp, Accel X, Accel Y, Accel Z, Gyro X, Gyro Y, Gyro Z";//Wheel_Speed, Brake_Temp, Accel_x, Accel_y, Accel_z, Gyro_x, Gyro_y, Gyro_z, Longitude, Latitude";
       saveData();
     }
 
@@ -212,14 +215,27 @@ void init_SD(DateTime now){
 void setup(void){
   Serial.begin(9600);
 
+  pinMode(GPIO_NUM_26, OUTPUT);
+  digitalWrite(GPIO_NUM_26, LOW);
+  pinMode(GPIO_NUM_33, OUTPUT);
+  digitalWrite(GPIO_NUM_33, LOW);
+
   Serial.print("Initializing CAN...");
   can_bus.Initialize(ICAN::BaudRate::kBaud1M);
+  //can_bus.RegisterRXMessage(rx_message_FLwheel);
+  //can_bus.RegisterRXMessage(rx_message_FRwheel);
+  //can_bus.RegisterRXMessage(rx_message_BLwheel);
+  //can_bus.RegisterRXMessage(rx_message_BRwheel);
+  //can_bus.RegisterRXMessage(rx_message_accel);
+  //can_bus.RegisterRXMessage(rx_message_gyro);
+  //can_bus.RegisterRXMessage(rx_message_gps);
+  //can_bus.RegisterRXMessage(rx_message_temp);
   Serial.print("CAN Initialized");
 
   Serial.print("Initializing timers...");
-  timer_group.AddTimer(10U, sensor10ms);
+  //timer_group.AddTimer(10U, sensor10ms);
   timer_group.AddTimer(100U, sensor100ms);
-  timer_group.AddTimer(1000U, sensor1000ms);
+  //timer_group.AddTimer(1000U, sensor1000ms);
   Serial.print("Timers Initialized");
 
   Serial.print("Initializing RTC...");
