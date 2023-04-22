@@ -1,26 +1,36 @@
-/*
-#include "RTClib.h"
-#include <map>
+// #include "RTClib.h"
+// #include <map>
+// #include <list>
+// #include <Arduino.h>
+// #include <SD.h>
+// #include <SPI.h>
 
-class LoggerBoard
-{
-    public: 
-        LoggerBoard();
+// class LoggerBoard
+// {
+//     public: 
+//         LoggerBoard(String fileName, String priority, std::vector<std::string> sensors, std::map<std::string, float> sensor_10ms, std::map<std::string, float> sensor_100ms, std::map<std::string, float> sensor_1000ms);
 
-        void saveData();
-        DateTime init_RTC();
-        void init_SD(DateTime now);
+//         void saveData();
+//         DateTime init_RTC();
+//         void init_SD(DateTime now);
+
+//         void sensor10ms();
+//         void sensor100ms();
+//         void sensor1000ms();
+
+//         String hp_lp;
     
-    private:
-        String FileName;
-        const int CSpin = 5;
-        const int new_SDA = 21;
-        const int new_SCL = 22;
-
-    /*
-        std::map<std::string, float> 10ms_sensors;
-        std::map<std::string, float> 100ms_sensors;
-        std::map<std::string, float> 1000ms_sensors;
+//     private:
+//         String fileName;
+//         std::string dataString;
+//         File sensorData;
+//         RTC_PCF8523 rtc;
+//         const int CSpin = 5;
+//         const int new_SDA = 21;
+//         const int new_SCL = 22;
+//         std::list<std::string> sensor_list;
+//         std::map<std::string, float> sensor_group_10ms;
+//         std::map<std::string, float> sensor_group_100ms;
+//         std::map<std::string, float> sensor_group_1000ms;
     
-} ;
-*/
+// } ;
