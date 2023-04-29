@@ -37,29 +37,29 @@ const int kGYRO_CAN = 0x432;
 
 // LP CAN Messages
 
-// // Front left wheel speed and temp
-// CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0.1), false> FL_wheel_speed_signal{}; 
-// CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> FL_brake_temp_signal{};
-// CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0.1), false> FL_suspension_position_signal{};
-// CANRXMessage<3> rx_message_FLwheel{can_bus, kFL_CAN, FL_wheel_speed_signal, FL_brake_temp_signal, FL_suspension_position_signal};
+// Front left wheel speed and temp
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> FL_wheel_speed_signal{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> FL_brake_temp_signal{};
+CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0.1), false> FL_suspension_position_signal{};
+CANRXMessage<3> rx_message_FLwheel{can_bus, kFL_CAN, FL_wheel_speed_signal, FL_brake_temp_signal, FL_suspension_position_signal};
 
-// // Front right wheel speed and temp
-// CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0.1), false> FR_wheel_speed_signal{}; 
-// CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> FR_brake_temp_signal{};
-// CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0.1), false> FR_suspension_position_signal{};
-// CANRXMessage<3> rx_message_FRwheel{can_bus, kFR_CAN, FR_wheel_speed_signal, FR_brake_temp_signal, FR_suspension_position_signal};
+// Front right wheel speed and temp
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> FR_wheel_speed_signal{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> FR_brake_temp_signal{};
+CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0.1), false> FR_suspension_position_signal{};
+CANRXMessage<3> rx_message_FRwheel{can_bus, kFR_CAN, FR_wheel_speed_signal, FR_brake_temp_signal, FR_suspension_position_signal};
 
-// // Back left wheel speed and temp
-// CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0.1), false> BL_wheel_speed_signal{}; 
-// CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> BL_brake_temp_signal{};
-// CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0.1), false> BL_suspension_position_signal{};
-// CANRXMessage<3> rx_message_BLwheel{can_bus, kBL_CAN, BL_wheel_speed_signal, BL_brake_temp_signal, BL_suspension_position_signal};
+// Back left wheel speed and temp
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> BL_wheel_speed_signal{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> BL_brake_temp_signal{};
+CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0.1), false> BL_suspension_position_signal{};
+CANRXMessage<3> rx_message_BLwheel{can_bus, kBL_CAN, BL_wheel_speed_signal, BL_brake_temp_signal, BL_suspension_position_signal};
 
-// // Back right wheel speed and temp
-// CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0.1), false> BR_wheel_speed_signal{}; 
-// CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> BR_brake_temp_signal{};
-// CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0.1), false> BR_suspension_position_signal{};
-// CANRXMessage<3> rx_message_BRwheel{can_bus, kBR_CAN, BR_wheel_speed_signal, BR_brake_temp_signal, BR_suspension_position_signal};
+// Back right wheel speed and temp
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> BR_wheel_speed_signal{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> BR_brake_temp_signal{};
+CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0.1), false> BR_suspension_position_signal{};
+CANRXMessage<3> rx_message_BRwheel{can_bus, kBR_CAN, BR_wheel_speed_signal, BR_brake_temp_signal, BR_suspension_position_signal};
 
 // Brake Pressure
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0.1), true> F_Brake_pressure{}; 
@@ -67,20 +67,20 @@ CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0
 CANRXMessage<2> rx_message_brake{can_bus, kBrake_CAN, F_Brake_pressure, R_Brake_pressure};
 
 // // Acceleration
-CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0.1), false> accel_x{}; 
-CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> accel_y{}; 
-CANSignal<float, 32, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> accel_z{};
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.0005), CANTemplateConvertFloat(0), false> accel_x{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.0005), CANTemplateConvertFloat(0), false> accel_y{}; 
+CANSignal<float, 32, 16, CANTemplateConvertFloat(0.0005), CANTemplateConvertFloat(0), false> accel_z{};
 CANRXMessage<3> rx_message_accel{can_bus, kACCEL_CAN, accel_x, accel_y, accel_z};
 
 // Gyro
-CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_x{}; 
-CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_y{}; 
-CANSignal<float, 32, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), false> gyro_z{}; 
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.0005), CANTemplateConvertFloat(0), false> gyro_x{}; 
+CANSignal<float, 16, 16, CANTemplateConvertFloat(0.0005), CANTemplateConvertFloat(0), false> gyro_y{}; 
+CANSignal<float, 32, 16, CANTemplateConvertFloat(0.0005), CANTemplateConvertFloat(0), false> gyro_z{}; 
 CANRXMessage<3> rx_message_gyro{can_bus, kGYRO_CAN, gyro_x, gyro_y, gyro_z};
 
 // GPS
-CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lon_signal{}; 
-CANSignal<float, 16, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(-40), true> lat_signal{}; 
+CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), true> lon_signal{}; 
+CANSignal<float, 32, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), true> lat_signal{}; 
 CANRXMessage<2> rx_message_gps{can_bus, kGPS_CAN, lon_signal, lat_signal};
 
 // // BMS Cell V Summary
@@ -152,9 +152,11 @@ void sensor100ms(){
 
 void sensor1000ms(){
   DateTime now = rtc.now();
+  Serial.print("X Accel");
+  Serial.print(accel_x, 4);
 
   //                                Timestamp                        FL Speed                             FR Speed                               BL Speed                             BR Speed                             FL Brake Temp                        FR Brake Temp                        BL Brake Temp                       BR Brake Temp                     F Brake Pressure                 B Brake Pressure                     RPM                         Inverter Temp                              Motor Temp                             Coolant Temp                      Ambient Temp                    Accel_x                 Accel_y                Accel_z                  Gyro_x                Gyro_y                  Gyro_z                  Longitude                   Latitude
-  // dataString = dataString + "\n" + now.timestamp() + ", " + float(FL_wheel_speed_signal) + ", " + float(FR_wheel_speed_signal) + ", " + float(BL_wheel_speed_signal) + ", " + float(BR_wheel_speed_signal) + ", " + float(FL_brake_temp_signal) + ", " + float(FR_brake_temp_signal) + ", " + float(BL_brake_temp_signal) + ", " + float(BR_brake_temp_signal) + ", " + float(F_Brake_pressure) + ", " + float(R_Brake_pressure) + ", " + inverter.GetRPM() + ", " + inverter.GetInverterTemperature() + ", " + inverter.GetMotorTemperature() + "," + float(coolant_temp_signal) + "," + float(ambient_temp_signal) + ", " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
+  dataString = dataString + "\n" + now.timestamp() + ", " + float(FL_wheel_speed_signal) + ", " + float(FR_wheel_speed_signal) + ", " + float(BL_wheel_speed_signal) + ", " + float(BR_wheel_speed_signal) + ", " + float(FL_brake_temp_signal) + ", " + float(FR_brake_temp_signal) + ", " + float(BL_brake_temp_signal) + ", " + float(BR_brake_temp_signal) + ", " + float(F_Brake_pressure) + ", " + float(R_Brake_pressure) + ", " + inverter.GetRPM() + ", " + inverter.GetInverterTemperature() + ", " + inverter.GetMotorTemperature() + "," + float(coolant_temp_signal) + "," + float(ambient_temp_signal) + ", " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
   saveData();
 }
 
@@ -180,7 +182,7 @@ DateTime init_RTC(){
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   DateTime now = rtc.now();
 
-  float drift = 0; // seconds plus or minus over oservation period - set to 0 to cancel previous calibration.
+  float drift = -10; // seconds plus or minus over oservation period - set to 0 to cancel previous calibration.
   float period_sec = (7 * 86400);  // total obsevation period in seconds (86400 = seconds in 1 day:  7 days = (7 * 86400) seconds )
   float deviation_ppm = (drift / period_sec * 1000000); //  deviation in parts per million (μs)
   float drift_unit = 4.34; // use with offset mode PCF8523_TwoHours
@@ -227,10 +229,10 @@ void setup(void){
   Serial.print("Initializing CAN...");
   can_bus.Initialize(ICAN::BaudRate::kBaud1M);
   
-  // can_bus.RegisterRXMessage(rx_message_FLwheel);
-  // can_bus.RegisterRXMessage(rx_message_FRwheel);
-  // can_bus.RegisterRXMessage(rx_message_BLwheel);
-  // can_bus.RegisterRXMessage(rx_message_BRwheel);
+  can_bus.RegisterRXMessage(rx_message_FLwheel);
+  can_bus.RegisterRXMessage(rx_message_FRwheel);
+  can_bus.RegisterRXMessage(rx_message_BLwheel);
+  can_bus.RegisterRXMessage(rx_message_BRwheel);
   can_bus.RegisterRXMessage(rx_message_brake);
   can_bus.RegisterRXMessage(rx_message_accel);
   can_bus.RegisterRXMessage(rx_message_gyro);
