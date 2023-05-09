@@ -26,7 +26,19 @@ TeensyCAN<1> can_bus{};
 ESPCAN can_bus{10, GPIO_NUM_32, GPIO_NUM_27};
 #endif
 
+const bool isLP = true;
+
+#if (isLP)
+//
+//
+// START LP CAN
+//
+//
+
+//
 // LP CAN Addresses
+//
+
 const int kFL_CAN = 0x400;
 const int kFR_CAN = 0x401;
 const int kBL_CAN = 0x402;
@@ -36,7 +48,9 @@ const int kGPS_CAN = 0x430;
 const int kACCEL_CAN = 0x431;
 const int kGYRO_CAN = 0x432;
 
+//
 // LP CAN Messages
+//
 
 // Front left wheel speed and temp
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.1), CANTemplateConvertFloat(0), false> FL_wheel_speed_signal{};
@@ -85,13 +99,30 @@ CANSignal<float, 0, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0), 
 CANSignal<float, 32, 16, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0), true> lat_signal{};
 CANRXMessage<2> rx_message_gps{can_bus, kGPS_CAN, lon_signal, lat_signal};
 
-// // BMS Cell V Summary
+// BMS Cell V Summary
 
+//
+//
+// END LP CAN
+//
+//
+#else
+//
+//
+// START HP CAN
+//
+//
+
+//
 // HP CAN Addresses
+//
+
 const int kTemp_CAN = 0x420;
 const int kThrottle_CAN = 0x300;
 
+//
 // HP CAN Messages
+//
 
 // Temp
 CANSignal<float, 0, 16, CANTemplateConvertFloat(0.01), CANTemplateConvertFloat(0), false> coolant_temp_signal{};
@@ -104,6 +135,14 @@ CANRXMessage<2> rx_message_temp{can_bus, kTemp_CAN, coolant_temp_signal, ambient
 CANSignal<uint8_t, 0, 8, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0), false> cur_throttle_signal{};
 CANRXMessage<1> rx_message_throttle{can_bus, kThrottle_CAN, cur_throttle_signal};
 
+//
+//
+// END HP CAN
+//
+//
+#endif
+
+
 const int CSpin = 5;
 const int new_SDA = 21;
 const int new_SCL = 22;
@@ -113,6 +152,11 @@ String fileName;
 String dataString = "";
 
 Inverter inverter{can_bus};
+
+
+//
+// Write to SD on different time frames
+//
 
 void saveData()
 {
@@ -135,18 +179,37 @@ void saveData()
 void sensor10ms()
 {
   DateTime now = rtc.now();
-  // dataString = dataString + "\n" + now.timestamp();
-  // dataString = dataString + "\n" + now.timestamp() + ", , , , , , , , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", , , , , ";
+  String placeholder = "";
+
+  #if (isLP)
+  //                            Timestamp                     FL Speed                              FR Speed                             BL Speed                                BR Speed           Brake Temp, Brake Pressure   Accel_x             Accel_y                 Accel_z                Gyro_x                  Gyro_y                 Gyro_z      Long, Lat
+  dataString = placeholder + now.timestamp() + ", " + float(FL_wheel_speed_signal) + ", " + float(FR_wheel_speed_signal) + ", " + float(BL_wheel_speed_signal) + ", " + float(BR_wheel_speed_signal) + ", , , , , , , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", , ";
+
+  #else
+  //                            Timestamp                   RPM                          Inverter Temp                              Motor Temp       Coolant, Ambient Temp       Throttle
+  dataString = placeholder + now.timestamp() + ", " + inverter.GetRPM() + ", " + inverter.GetInverterTemperature() + ", " + inverter.GetMotorTemperature() + ", , , " + float(cur_throttle_signal);
+  
+  #endif
   saveData();
 }
 
 void sensor100ms()
 {
+  // NEED TO FINISH
+  //
   DateTime now = rtc.now();
+  String placeholder = "";
 
-  // dataString = dataString + "\n" + now.timestamp() + ", , , , , , , , , ," + inverter.GetRPM() + ", " + inverter.GetInverterTemperature() + ", " + inverter.GetMotorTemperature() + "," + float(coolant_temp_signal) + "," + float(ambient_temp_signal);// + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z);//float(FL_wheel_speed_signal) + ", " + float(FR_wheel_speed_signal);
+  #if (isLP)
+  //                            Timestamp                     FL Speed                              FR Speed                             BL Speed                                BR Speed           Brake Temp, Brake Pressure   Accel_x             Accel_y                 Accel_z                Gyro_x                  Gyro_y                 Gyro_z      Long, Lat
+  dataString = placeholder + now.timestamp() + ", " + float(FL_wheel_speed_signal) + ", " + float(FR_wheel_speed_signal) + ", " + float(BL_wheel_speed_signal) + ", " + float(BR_wheel_speed_signal) + ", , , , , , , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", , ";
+  
+  #else
+  //                            Timestamp                   RPM                          Inverter Temp                              Motor Temp       Coolant, Ambient Temp       Throttle
+  dataString = placeholder + now.timestamp() + ", " + inverter.GetRPM() + ", " + inverter.GetInverterTemperature() + ", " + inverter.GetMotorTemperature() + ", , , " + float(cur_throttle_signal);
+  
+  #endif
 
-  // dataString = dataString + "\n" + now.timestamp() + float(FL_wheel_speed_signal) + float(FR_wheel_speed_signal) + float(BL_wheel_speed_signal) + float(BR_wheel_speed_signal) + ", , , , , " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
   saveData();
 }
 
@@ -154,10 +217,24 @@ void sensor1000ms()
 {
   DateTime now = rtc.now();
   String placeholder = "";
-  //                                Timestamp                        FL Speed                             FR Speed                               BL Speed                             BR Speed                             FL Brake Temp                        FR Brake Temp                        BL Brake Temp                       BR Brake Temp                     F Brake Pressure                 B Brake Pressure                     RPM                         Inverter Temp                              Motor Temp                             Coolant Temp                      Ambient Temp                    Accel_x                 Accel_y                Accel_z                  Gyro_x                Gyro_y                  Gyro_z                  Longitude                   Latitude
-  dataString = placeholder + now.timestamp() + ", " + float(FL_wheel_speed_signal) + ", " + float(FR_wheel_speed_signal) + ", " + float(BL_wheel_speed_signal) + ", " + float(BR_wheel_speed_signal) + ", " + float(FL_brake_temp_signal) + ", " + float(FR_brake_temp_signal) + ", " + float(BL_brake_temp_signal) + ", " + float(BR_brake_temp_signal) + ", " + float(F_Brake_pressure) + ", " + float(R_Brake_pressure) + ", " + inverter.GetRPM() + ", " + inverter.GetInverterTemperature() + ", " + inverter.GetMotorTemperature() + "," + float(coolant_temp_signal) + "," + float(ambient_temp_signal) + ", " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
+
+  #if (isLP)
+  //                            Timestamp                     FL Speed                              FR Speed                             BL Speed                                BR Speed                           FL Brake Temp                        FR Brake Temp                       BL Brake Temp                       BR Brake Temp                      F Brake Pressure                B Brake Pressure                    Accel_x                Accel_y                 Accel_z                Gyro_x                  Gyro_y                 Gyro_z                  Longitude                 Latitude
+  dataString = placeholder + now.timestamp() + ", " + float(FL_wheel_speed_signal) + ", " + float(FR_wheel_speed_signal) + ", " + float(BL_wheel_speed_signal) + ", " + float(BR_wheel_speed_signal) + ", " + float(FL_brake_temp_signal) + ", " + float(FR_brake_temp_signal) + ", " + float(BL_brake_temp_signal) + ", " + float(BR_brake_temp_signal) + ", " + float(F_Brake_pressure) + ", " + float(R_Brake_pressure) + ", " + float(accel_x) + ", " + float(accel_y) + ", " + float(accel_z) + ", " + float(gyro_x) + ", " + float(gyro_y) + ", " + float(gyro_z) + ", " + float(lon_signal) + ", " + float(lat_signal);
+  
+  #else
+  //                            Timestamp                   RPM                          Inverter Temp                              Motor Temp                          Coolant Temp                         Ambient Temp                        Throttle
+  dataString = placeholder + now.timestamp() + ", " + inverter.GetRPM() + ", " + inverter.GetInverterTemperature() + ", " + inverter.GetMotorTemperature() + "," + float(coolant_temp_signal) + "," + float(ambient_temp_signal) + ", " + float(cur_throttle_signal);
+  
+  #endif
+
   saveData();
 }
+
+
+//
+// Start the Setup
+//
 
 DateTime init_RTC()
 {
@@ -183,7 +260,8 @@ DateTime init_RTC()
   }
 
   rtc.start();
-  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  // Turn on if RTC drifts too far
+  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   DateTime now = rtc.now();
 
   float drift = -10;                                    // seconds plus or minus over oservation period - set to 0 to cancel previous calibration.
@@ -214,8 +292,15 @@ void init_SD(DateTime now)
     // New file name not working yet, does work with /test.txt
     fileName = "/test-" + String(now.month()) + "-" + String(now.day()) + "=" + String(now.hour()) + "-" + String(now.minute()) + ".csv";
     sensorData = SD.open(fileName, FILE_WRITE);
-    dataString = "Timestamp, FL Speed, FR Speed, BL Speed, BR Speed, FL Brake Temp, FR Brake Temp, BL Brake Temp, BR Brake Temp, F Brake Pressure, B Brake Pressure, RPM, Inverter Temp, Motor Temp, Coolant Temp, Ambient Temp, Accel_x, Accel_y, Accel_z, Gyro_x, Gyro_y, Gyro_z, Longitude, Latitude";
-    //  HP Headers:
+    if (isLP)
+    {
+      dataString = "Timestamp, FL Speed, FR Speed, BL Speed, BR Speed, FL Brake Temp, FR Brake Temp, BL Brake Temp, BR Brake Temp, F Brake Pressure, B Brake Pressure, Accel_x, Accel_y, Accel_z, Gyro_x, Gyro_y, Gyro_z, Longitude, Latitude";
+    }
+    else
+    {
+      dataString = "Timestamp, RPM, Inverter Temp, Motor Temp, Coolant Temp, Ambient Temp, Throttle";
+    }
+
     saveData();
   }
 }
@@ -232,22 +317,41 @@ void setup(void)
   Serial.print("Initializing CAN...");
   can_bus.Initialize(ICAN::BaudRate::kBaud1M);
 
-  // can_bus.RegisterRXMessage(rx_message_FLwheel);
-  // can_bus.RegisterRXMessage(rx_message_FRwheel);
-  // can_bus.RegisterRXMessage(rx_message_BLwheel);
-  // can_bus.RegisterRXMessage(rx_message_BRwheel);
-  // can_bus.RegisterRXMessage(rx_message_brake);
-  // can_bus.RegisterRXMessage(rx_message_accel);
-  // can_bus.RegisterRXMessage(rx_message_gyro);
-  // can_bus.RegisterRXMessage(rx_message_gps);
-  // can_bus.RegisterRXMessage(rx_message_temp);
+  #if (isLP)
+  //
+  // LP CAN Messages
+  //
+  can_bus.RegisterRXMessage(rx_message_FLwheel);
+  can_bus.RegisterRXMessage(rx_message_FRwheel);
+  can_bus.RegisterRXMessage(rx_message_BLwheel);
+  can_bus.RegisterRXMessage(rx_message_BRwheel);
+  can_bus.RegisterRXMessage(rx_message_brake);
+  can_bus.RegisterRXMessage(rx_message_accel);
+  can_bus.RegisterRXMessage(rx_message_gyro);
+  can_bus.RegisterRXMessage(rx_message_gps);
+
+  #else
+  //
+  // HP CAN Messages
+  //
+  can_bus.RegisterRXMessage(rx_message_temp);
+  can_bus.RegisterRXMessage(rx_message_throttle);
+  
+  #endif
+
   Serial.print("CAN Initialized");
 
+  #if (isLP)
+  Serial.print("No inverter for LP")
+  
+  #else
   Serial.print("Initializing Inverter...");
   inverter.RequestMotorTemperature(100);
   inverter.RequestPowerStageTemp(100);
   inverter.RequestRPM(100);
   Serial.print("Inverter Initialized");
+  
+  #endif
 
   Serial.print("Initializing RTC...");
   DateTime now = init_RTC();
@@ -258,8 +362,8 @@ void setup(void)
   Serial.print("SD Card Initialized");
 
   Serial.print("Initializing Timers...");
-  // timer_group.AddTimer(10U, sensor10ms);
-  // timer_group.AddTimer(100U, sensor100ms);
+  timer_group.AddTimer(10U, sensor10ms);
+  timer_group.AddTimer(100U, sensor100ms);
   timer_group.AddTimer(1000, sensor1000ms);
   Serial.print("Timers Initialized");
 }
