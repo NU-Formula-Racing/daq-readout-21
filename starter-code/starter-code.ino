@@ -1,9 +1,10 @@
 /*
-SD CARD SHIELD TESTING CODE
+DAQ STARTER CODE: Learn to read a sensor and write to SD!
 
-IN ORDER FOR THIS CODE TO WORK, THERE MUST BE A FILE CALLED "VerTrack.txt" with some number in it.
+IN ORDER FOR THIS CODE TO WORK, THERE MUST BE A FILE CALLED "VerTrack.txt" with some number in the file (start with 0) on the SD card.
 
 WHAT THE CODE SHOULD DO:
+
 Write to a CSV file like so:
 
 Digital  Analog1 Analog2
@@ -17,15 +18,13 @@ Digital  Analog1 Analog2
 381989.00 16.00 114.00
 445006.00 18.00 116.00
 507953.00 20.00 118.00
-
-
-
 */
 
+// import necessary libraries
 #include "SD.h"
 #include"SPI.h"
 
-//GLOBALS
+// global variables
 const int CSpin = 53;
 String dataString ="";
 String fileName;
@@ -35,6 +34,7 @@ unsigned long previousTimeDigital = millis();
 unsigned long previousTimeAnalog = millis();
 
 // leds for detecting sd card
+// TODO: check if this is these are the correct pins
 int led_r = 39;
 int led_g = 40;
 int led_y = 41;
@@ -46,16 +46,17 @@ float allSensors[3]={digitalReading, 2, 100};
 
 // fake digital sensor
 void digitalSensor(){
-  digitalReading = digitalReading + 1.0;
+  // TODO: edit this so that it uses previousTimeDigital to calculate the correct digital reading
+  digitalReading = 0;
   allSensors[0] = digitalReading;
 }
 
-
+// two fake analog sensors
 void analogSensors(){
   for (int i = 1; i < sizeof(allSensors)/sizeof(float); i = i + 1) {
     allSensors[i] = allSensors[i]+2;
     }
-  };
+ };
 
 
 // saves to sd card
@@ -67,8 +68,7 @@ void saveData(){
       sensorData.println(dataString);
       sensorData.close();
       Serial.println(dataString);
-    }
-  } else {
+   } else {
     Serial.println("Error saving values to file !");
     digitalWrite(led_r, LOW);
     digitalWrite(led_y, LOW);
@@ -146,7 +146,7 @@ void setup() {
      if (sensorData){
         Serial.println("Digital, Analog1, Analog2");
         sensorData.println("Digital, Analog1, Analog2");
-      } else {
+     } else {
       Serial.println("Error writing headers to file !");
       digitalWrite(led_r, LOW);
       digitalWrite(led_y, LOW);
@@ -169,16 +169,14 @@ void loop() {
   unsigned long currentTime = millis();
   
   // run checks for digital sensors every single loop, check for reading of 0
-  if (currentTime < 10000){
-    
-  digitalSensor();
+  if (currentTime < 10000) {
+    digitalSensor();
 
-  // check for analog reading every second
-  if (currentTime - previousTimeAnalog > 1000){
-    previousTimeAnalog = currentTime;
-    compileCurData();
-    saveData();
+    // check for analog reading every second
+    if (currentTime - previousTimeAnalog > 1000) {
+      previousTimeAnalog = currentTime;
+      compileCurData();
+      saveData();
+    }
   }
-  }
-  
 }
